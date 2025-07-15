@@ -21,6 +21,7 @@ services:
       - text-to-speech
     volumes:
       - ./temp_files:/app/temp_files
+      - ${HOME}/Downloads:/root/Downloads  # Host Downloads folder mapped to container's ~/Downloads
 
   media-processor:
     build: ./media-processor
@@ -36,6 +37,7 @@ services:
       - minio
     volumes:
       - ./temp_files:/app/temp_files
+      - ${HOME}/Downloads:/root/Downloads
 
   text-to-speech:
     build: ./text-to-speech
@@ -51,6 +53,7 @@ services:
       - minio
     volumes:
       - ./temp_files:/app/temp_files
+      - ${HOME}/Downloads:/root/Downloads  # Mount to container's default user Downloads path
 
   postgres:
     image: postgres:15
