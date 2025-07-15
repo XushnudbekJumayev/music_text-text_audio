@@ -1,0 +1,230 @@
+# Music Text Converter 🎵📝
+
+Bu loyiha foydalanuvchilarga ikki asosiy xizmatni taqdim etadi:
+1. **Media to Text** - Audio/video fayllarni matnga aylantirish
+2. **Text to Audio** - Matnni audio faylga (erkak/ayol ovozda) aylantirish
+
+## 🏗️ Tizim Arxitekturasi
+
+Loyiha mikroservis arxitekturasiga asoslanib qurilgan va quyidagi komponentlardan iborat:
+
+### Servislar
+- **API Gateway** (Port: 8000) - FastAPI
+- **Media Processor** (Port: 8001) - FastAPI + OpenAI Whisper
+- **Text-to-Speech** (Port: 8002) - FastAPI + gTTS/pyttsx3
+- **PostgreSQL** (Port: 5432) - Ma'lumotlar bazasi
+- **Redis** (Port: 6379) - Kesh va navbat
+- **MinIO** (Port: 9000/9001) - Fayl saqlash (S3-compatible)
+
+## 🚀 Tez Boshlash
+
+### 1. Talab qilinadigan dasturlar
+- Docker
+- Docker Compose
+- Make (ixtiyoriy)
+
+### 2. Loyihani klonlash
+```bash
+git clone <repository-url>
+cd music_txt_changer
+```
+
+### 3. Loyihani ishga tushurish
+```bash
+# Make yordamida
+make up
+
+# Yoki docker-compose yordamida
+docker-compose up --build -d
+```
+
+### 4. Servislar holatini tekshirish
+```bash
+make status
+# yoki
+docker-compose ps
+```
+
+## 📡 API Endpoints
+
+### 🎙️ Media to Text
+```http
+POST /api/v1/media-to-text
+Content-Type: multipart/form-data
+
+Parameters:
+- file: Audio/video fayl (maksimal 150MB)
+```
+
+**Javob:**
+```json
+{
+  "id": "unique_job_id",
+  "filename": "original_filename",
+  "file_upload": "file_root",
+  "status": "completed",
+  "created_at": "2024-01-01T12:00:00Z"
+}
+```
+
+### 🗣️ Text to Audio
+```http
+POST /api/v1/text-to-audio
+Content-Type: application/json
+
+Body:
+{
+  "text": "text_to_convert",
+  "voice_type": "male|female",
+  "filename": "custom_filename" // ixtiyoriy
+}
+```
+
+**Javob:**
+```json
+{
+  "id": "unique_job_id",
+  "filename": "generated_audio_name",
+  "audio_url": "/api/v1/download/{job_id}",
+  "voice_type": "male",
+  "status": "completed"
+}
+```
+
+### 📥 Fayl Yuklab Olish
+```http
+GET /api/v1/download/{job_id}
+```
+
+## 🛠️ Makefile Buyruqlari
+
+| Buyruq | Tavsif |
+|--------|--------|
+| `make up` | Barcha servislarni ishga tushurish |
+| `make down` | Barcha servislarni to'xtatish |
+| `make restart` | Barcha servislarni qayta ishga tushurish |
+| `make logs` | Barcha servislar logini ko'rish |
+| `make clean` | Konteyner va volume'larni tozalash |
+| `make status` | Servislar holatini ko'rish |
+| `make health` | Servislar sog'ligini tekshirish |
+
+## 🔧 Rivojlantirish
+
+### Loyiha tuzilishi
+```
+music_txt_changer/
+├── api-gateway/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── main.py
+├── media-processor/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── main.py
+├── text-to-speech/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── main.py
+├── docker-compose.yml
+├── Makefile
+└── README.md
+```
+
+### Lokal rivojlantirish
+```bash
+# Rivojlantirish rejimida ishga tushurish
+make dev
+
+# Alohida servislarni ishga tushurish
+make run-api      # Faqat API Gateway
+make run-media    # Faqat Media Processor
+make run-tts      # Faqat Text-to-Speech
+```
+
+## 📊 Monitoring va Loglar
+
+### Loglarni ko'rish
+```bash
+# Barcha servislar logi
+make logs
+
+# Alohida servis logi
+make logs-api
+make logs-media
+make logs-tts
+```
+
+### Resurslarni monitoring qilish
+```bash
+make monitor
+```
+
+## 🔒 Xavfsizlik
+
+- Fayl hajmi cheklangan (150MB)
+- Fayl turlari validatsiya qilinadi
+- Vaqtinchalik fayllar avtomatik tozalanadi
+- Environment variable'lar orqali konfiguratsiya
+
+## 📁 Qo'llab-quvvatlanadigan formatlar
+
+### Audio formatlar
+- MP3, WAV, FLAC, AAC, OGG, WMA, M4A
+
+### Video formatlar
+- MP4, AVI, MOV, MKV, FLV, WMV, WebM
+
+### TTS Tillari
+- Ingliz, Ispan, Fransuz, Nemis, Italyan, Portugel, Rus, Yapon, Koreys, Xitoy, Arab, Hindi va boshqalar
+
+## 🐛 Muammolarni hal qilish
+
+### Servislar ishlamasa
+```bash
+# Servislar holatini tekshirish
+make status
+
+# Loglarni ko'rish
+make logs
+
+# Servislarni qayta ishga tushurish
+make restart
+```
+
+### Ma'lumotlar bazasi muammolari
+```bash
+# Ma'lumotlar bazasini tiklash
+make db-reset
+
+# Ma'lumotlar bazasiga ulanish
+make shell-db
+```
+
+## 📝 Misollar
+
+### cURL orqali test
+```bash
+# Media to text
+curl -X POST http://localhost:8000/api/v1/media-to-text \
+  -F "file=@test_audio.mp3"
+
+# Text to audio
+curl -X POST http://localhost:8000/api/v1/text-to-audio \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Salom dunyo", "voice_type": "male"}'
+```
+
+## 🤝 Hissa qo'shish
+
+1. Repository'ni fork qiling
+2. Feature branch yarating
+3. O'zgarishlarni commit qiling
+4. Pull request yuboring
+
+## 📄 Litsenziya
+
+MIT License
+
+## 🙋‍♂️ Yordam
+
+Muammolar yuzaga kelsa, GitHub Issues orqali murojaat qiling.
